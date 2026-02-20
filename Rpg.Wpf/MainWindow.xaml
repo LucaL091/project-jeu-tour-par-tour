@@ -1,0 +1,321 @@
+﻿<Window x:Class="Rpg.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Rpg.Wpf"
+        xmlns:viewmodels="clr-namespace:Rpg.Wpf.ViewModels"
+        xmlns:conv="clr-namespace:Rpg.Wpf.Converters"
+        mc:Ignorable="d"
+        Title="RPG Adventure" Height="700" Width="1000"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#0F2027" Offset="0.0"/>
+            <GradientStop Color="#203A43" Offset="0.5"/>
+            <GradientStop Color="#2C5364" Offset="1.0"/>
+        </LinearGradientBrush>
+    </Window.Background>
+
+    <Window.Resources>
+        <conv:BoolToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        
+        <!-- Modern Button Style with Animation -->
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="#33FFFFFF"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="BorderBrush" Value="#55FFFFFF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="8" 
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#55FFFFFF"/>
+                                <Setter Property="Cursor" Value="Hand"/>
+                                <Setter TargetName="border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="Cyan" BlurRadius="10" ShadowDepth="0" Opacity="0.6"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#22FFFFFF"/>
+                                <Setter TargetName="border" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.95" ScaleY="0.95" CenterX="0.5" CenterY="0.5"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.4"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Glass Panel Style -->
+        <Style x:Key="GlassPanel" TargetType="Border">
+            <Setter Property="Background" Value="#CC101010"/>
+            <Setter Property="CornerRadius" Value="15"/>
+            <Setter Property="BorderBrush" Value="#44FFFFFF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="Black" BlurRadius="20" ShadowDepth="10" Opacity="0.5"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Custom ProgressBar -->
+        <Style TargetType="ProgressBar">
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="Background" Value="#33000000"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ProgressBar">
+                        <Grid>
+                            <Border Name="PART_Track" Background="{TemplateBinding Background}" CornerRadius="10"/>
+                            <Border Name="PART_Indicator" Background="{TemplateBinding Foreground}" CornerRadius="10" HorizontalAlignment="Left">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=Foreground.Color}" BlurRadius="5" ShadowDepth="0" Opacity="0.5"/>
+                                </Border.Effect>
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ComboBox Style -->
+        <Style TargetType="ComboBox">
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Background" Value="#33FFFFFF"/>
+            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="BorderBrush" Value="#55FFFFFF"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+
+    </Window.Resources>
+
+    <Window.DataContext>
+        <viewmodels:MainViewModel/>
+    </Window.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Header -->
+            <RowDefinition Height="Auto"/> <!-- Combat Stats -->
+            <RowDefinition Height="*"/>    <!-- Logs -->
+            <RowDefinition Height="Auto"/> <!-- Controls -->
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock Text="R P G   A D V E N T U R E" Foreground="#AAFFFFFF" FontSize="28" HorizontalAlignment="Center" 
+                   FontWeight="Bold" FontFamily="Segoe UI Light" Margin="0,20,0,10"/>
+
+        <!-- Start Screen Overlay -->
+        <Grid Grid.Row="0" Grid.RowSpan="4" Panel.ZIndex="100" 
+              Visibility="{Binding ShowStartMenu, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid.Background>
+                <SolidColorBrush Color="Black" Opacity="0.8"/>
+            </Grid.Background>
+            
+            <Border Style="{StaticResource GlassPanel}" Width="450" Padding="30" VerticalAlignment="Center">
+                <StackPanel>
+                    <TextBlock Text="CRÉATION DE HÉROS" Foreground="White" FontSize="26" HorizontalAlignment="Center" Margin="0,0,0,25" FontWeight="Bold"/>
+
+                    <TextBlock Text="NOM DU HÉROS" Foreground="#88FFFFFF" FontSize="12" FontWeight="Bold" Margin="0,5"/>
+                    <TextBox Text="{Binding PlayerName, UpdateSourceTrigger=PropertyChanged}" Height="35" FontSize="16" Background="#22FFFFFF" Foreground="White" BorderBrush="#44FFFFFF" BorderThickness="1" Padding="5,5"/>
+
+                    <TextBlock Text="CLASSE" Foreground="#88FFFFFF" FontSize="12" FontWeight="Bold" Margin="0,15,0,5"/>
+                    <ComboBox ItemsSource="{Binding Classes}" SelectedIndex="{Binding SelectedClassIndex}" Height="35"/>
+
+                    <TextBlock Text="ARME DE DÉPART" Foreground="#88FFFFFF" FontSize="12" FontWeight="Bold" Margin="0,15,0,5"/>
+                    <ComboBox ItemsSource="{Binding AvailableWeapons}" SelectedItem="{Binding SelectedWeapon}" DisplayMemberPath="Name" Height="35"/>
+
+                    <TextBlock Text="DIFFICULTÉ" Foreground="#88FFFFFF" FontSize="12" FontWeight="Bold" Margin="0,15,0,5"/>
+                    <ComboBox ItemsSource="{Binding Difficulties}" SelectedIndex="{Binding SelectedDifficultyIndex}" Height="35"/>
+
+                    <!-- Stat Preview -->
+                    <Border Background="#22000000" CornerRadius="8" Margin="0,25,0,0" Padding="15">
+                        <StackPanel>
+                            <TextBlock Text="APERÇU DES STATS" Foreground="#AAFFFFFF" FontSize="12" FontWeight="Bold" Margin="0,0,0,10" HorizontalAlignment="Center"/>
+                            
+                            <Grid Margin="0,5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="30"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="PV" Foreground="#FF5252" FontWeight="Bold" VerticalAlignment="Center"/>
+                                <ProgressBar Grid.Column="1" Value="{Binding PreviewStats.HP, Mode=OneWay}" Maximum="200" Foreground="#FF5252" Margin="10,0"/>
+                                <TextBlock Grid.Column="2" Text="{Binding PreviewStats.HP, StringFormat='{}{0} Max', Mode=OneWay}" Foreground="White" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Grid Margin="0,5">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="30"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="PM" Foreground="#448AFF" FontWeight="Bold" VerticalAlignment="Center"/>
+                                <ProgressBar Grid.Column="1" Value="{Binding PreviewStats.MP, Mode=OneWay}" Maximum="100" Foreground="#448AFF" Margin="10,0"/>
+                                <TextBlock Grid.Column="2" Text="{Binding PreviewStats.MP, StringFormat='{}{0} Max', Mode=OneWay}" Foreground="White" VerticalAlignment="Center"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Button Content="COMMENCER L'AVENTURE" Command="{Binding StartGameCommand}" 
+                            Margin="0,30,0,0" Background="#4CAF50" BorderBrush="#66BB6A"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Combat Area -->
+        <Grid Grid.Row="1" Margin="40,20" Visibility="{Binding IsGameRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Hero Stats -->
+            <Border Grid.Column="0" Style="{StaticResource GlassPanel}" Padding="20">
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Hero.Name, FallbackValue='Hero'}" Foreground="Cyan" FontSize="22" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding Hero.Statistics.Level, StringFormat='Niveau {0}', Mode=OneWay}" Foreground="#BBBBBB" Margin="0,0,0,15"/>
+                    
+                    <DockPanel LastChildFill="True" Margin="0,5">
+                        <TextBlock Text="PV" Foreground="#FF5252" FontWeight="Bold" Width="30" VerticalAlignment="Center"/>
+                        <Grid>
+                            <ProgressBar Value="{Binding Hero.Statistics.HP, Mode=OneWay}" Maximum="{Binding Hero.Statistics.MaxHP, Mode=OneWay}" Foreground="#D32F2F" Height="22"/>
+                            <TextBlock Text="{Binding Hero.Statistics.HP, StringFormat='{}{0} / {1}', Mode=OneWay}" HorizontalAlignment="Center" Foreground="White" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </Grid>
+                    </DockPanel>
+
+                    <DockPanel LastChildFill="True" Margin="0,5">
+                        <TextBlock Text="PM" Foreground="#448AFF" FontWeight="Bold" Width="30" VerticalAlignment="Center"/>
+                        <Grid>
+                            <ProgressBar Value="{Binding Hero.Statistics.MP, Mode=OneWay}" Maximum="{Binding Hero.Statistics.MaxMP, Mode=OneWay}" Foreground="#1976D2" Height="22"/>
+                            <TextBlock Text="{Binding Hero.Statistics.MP, StringFormat='{}{0} / {1}', Mode=OneWay}" HorizontalAlignment="Center" Foreground="White" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </Grid>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- VS Animation -->
+             <Grid Grid.Column="1" VerticalAlignment="Center" Margin="30,0">
+                <TextBlock Text="VS" Foreground="#88FFFFFF" FontSize="40" FontWeight="Black" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock.Triggers>
+                        <EventTrigger RoutedEvent="Loaded">
+                            <BeginStoryboard>
+                                <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                    <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.4" To="1.0" Duration="0:0:1.5"/>
+                                    <DoubleAnimation Storyboard.TargetProperty="FontSize" From="40" To="44" Duration="0:0:0.8"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </TextBlock.Triggers>
+                </TextBlock>
+            </Grid>
+
+            <!-- Monster Stats -->
+            <Border Grid.Column="2" Style="{StaticResource GlassPanel}" Padding="20">
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Monster.Name, FallbackValue='Monster'}" Foreground="#FF5252" FontSize="22" FontWeight="Bold" HorizontalAlignment="Right"/>
+                    <TextBlock Text="{Binding Monster.Statistics.Level, StringFormat='Niveau {0}', Mode=OneWay}" Foreground="#BBBBBB" HorizontalAlignment="Right" Margin="0,0,0,15"/>
+
+                    <DockPanel LastChildFill="True" Margin="0,5">
+                        <TextBlock Text="PV" Foreground="#FF5252" FontWeight="Bold" DockPanel.Dock="Right" Width="30" TextAlignment="Right" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                        <Grid>
+                            <ProgressBar Value="{Binding Monster.Statistics.HP, Mode=OneWay}" Maximum="{Binding Monster.Statistics.MaxHP, Mode=OneWay}" Foreground="#C62828" Height="22"/>
+                            <TextBlock Text="{Binding Monster.Statistics.HP, StringFormat='{}{0} / {1}', Mode=OneWay}" HorizontalAlignment="Center" Foreground="White" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </Grid>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- Game Logs -->
+        <Border Grid.Row="2" Style="{StaticResource GlassPanel}" Margin="40,10">
+            <Grid>
+                 <ListView ItemsSource="{Binding GameLogs}" Background="Transparent" BorderThickness="0" Foreground="#EEEEEE" FontFamily="Consolas" FontSize="14" Padding="15">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="Focusable" Value="False"/>
+                            <Setter Property="Margin" Value="0,3"/>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                </ListView>
+                
+                <!-- Skill Selection Popup -->
+                <Border Background="#DD101010" BorderBrush="#448AFF" BorderThickness="1" MinWidth="250" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,160,20" CornerRadius="8" Padding="10"
+                        Visibility="{Binding ShowSkills, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <StackPanel>
+                        <TextBlock Text="CHOISIR UNE COMPÉTENCE" Foreground="#448AFF" FontWeight="Bold" Margin="0,0,0,10" HorizontalAlignment="Center"/>
+                        <ItemsControl ItemsSource="{Binding Hero.Skills}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Command="{Binding DataContext.SelectSkillCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" 
+                                            Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Stretch" Margin="0,2" Padding="5">
+                                        <Grid Background="Transparent">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding Name}" Foreground="White" IsHitTestVisible="False"/>
+                                            <TextBlock Grid.Column="1" Text="{Binding ManaCost, StringFormat='({0} PM)'}" Foreground="#448AFF" FontWeight="Bold" Margin="10,0,0,0" IsHitTestVisible="False"/>
+                                        </Grid>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- Inventory Selection Popup -->
+                <Border Background="#DD101010" BorderBrush="#66BB6A" BorderThickness="1" MinWidth="250" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="160,0,0,20" CornerRadius="8" Padding="10"
+                        Visibility="{Binding ShowInventory, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <StackPanel>
+                        <TextBlock Text="UTILISER UN OBJET" Foreground="#66BB6A" FontWeight="Bold" Margin="0,0,0,10" HorizontalAlignment="Center"/>
+                        <ItemsControl ItemsSource="{Binding Hero.Inventory}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Content="{Binding Name}" Command="{Binding DataContext.SelectItemCommand, RelativeSource={RelativeSource AncestorType=Window}}" CommandParameter="{Binding}" 
+                                            Background="Transparent" BorderThickness="0" Foreground="White" HorizontalContentAlignment="Left" Margin="0,2"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- Controls -->
+        <Grid Grid.Row="3" Margin="40,20" Visibility="{Binding IsGameRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Content="ATTAQUER" Command="{Binding AttackCommand}" Margin="10" Background="#C62828" BorderBrush="#E53935"/>
+            <Button Grid.Column="1" Content="COMPÉTENCES" Command="{Binding UseSkillCommand}" Margin="10" Background="#1565C0" BorderBrush="#1E88E5"/>
+            <Button Grid.Column="2" Content="OBJETS" Command="{Binding UseItemCommand}" Margin="10" Background="#2E7D32" BorderBrush="#43A047"/>
+            <Button Grid.Column="3" Content="FUIR" Command="{Binding FleeCommand}" Margin="10" Background="#F9A825" BorderBrush="#FDD835" Foreground="Black"/>
+        </Grid>
+    </Grid>
+</Window>

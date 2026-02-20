@@ -18,27 +18,34 @@ using Rpg.Wpf.Commands;
 
 namespace Rpg.Wpf.ViewModels
 {
+    /// <summary>
+    /// ViewModel principal pour l'application WPF. 
+    /// Centralise la logique d'interface (MVVM) et coordonne le flux du jeu.
+    /// implémente ICombatObserver pour réagir aux événements de combat.
+    /// </summary>
     public class MainViewModel : INotifyPropertyChanged, ICombatObserver
     {
+        // Services injectés
         private readonly PersonnageService _personnageService;
         private readonly CombatService _combatService;
         private readonly MonsterFactory _monsterFactory;
         
+        // État du jeu
         private Hero _hero;
         private Monster _monster;
         private int _floor;
         private bool _isGameRunning;
         private bool _isPlayerTurn;
 
-        // Character Creation
+        // Données du menu de création
         private string _playerName = "Heros";
         private int _selectedClassIndex;
-        private int _selectedDifficultyIndex = 1; // Normal default
-        private Stats _previewStats; // For UI Preview
+        private int _selectedDifficultyIndex = 1;
+        private Stats _previewStats; 
         private Weapon _selectedWeapon;
         private ObservableCollection<Weapon> _availableWeapons = new ObservableCollection<Weapon>();
 
-        // Menus
+        // Visibilité des menus contextuels
         private bool _showSkills;
         private bool _showInventory;
 
@@ -145,6 +152,9 @@ namespace Rpg.Wpf.ViewModels
 
         public bool ShowStartMenu => !IsGameRunning;
 
+        /// <summary>
+        /// Définit si c'est au tour du joueur d'agir. Bloque les boutons quand à false.
+        /// </summary>
         public bool IsPlayerTurn
         {
             get => _isPlayerTurn;
@@ -153,7 +163,7 @@ namespace Rpg.Wpf.ViewModels
                 _isPlayerTurn = value; 
                 OnPropertyChanged(); 
                 
-                // Force UI to re-evaluate Command CanExecute
+                // Correction du bug de rafraîchissement : On force WPF à revérifier l'état des boutons
                 Application.Current?.Dispatcher?.BeginInvoke(new Action(() =>
                 {
                     CommandManager.InvalidateRequerySuggested();
@@ -161,43 +171,39 @@ namespace Rpg.Wpf.ViewModels
             }
         }
 
+        // Commandes (Actions déclenchées par les boutons UI)
         public ICommand StartGameCommand { get; }
         public ICommand AttackCommand { get; }
-        public ICommand UseItemCommand { get; } // Now just toggles menu
-        public ICommand UseSkillCommand { get; } // Now just toggles menu
+        public ICommand UseItemCommand { get; } 
+        public ICommand UseSkillCommand { get; } 
         public ICommand FleeCommand { get; }
         public ICommand SelectSkillCommand { get; }
         public ICommand SelectItemCommand { get; }
 
         public MainViewModel()
         {
-            // Initialize Services
+            // Initialisation des Services et Repositories
             var repo = new Rpg.Core.Repositories.JsonPersonnageRepository();
             _personnageService = new PersonnageService(repo);
             var damageStrategy = new PhysicalDamageStrategy();
             _combatService = new CombatService(damageStrategy);
-            _combatService.Attach(this); // Register as observer
+            _combatService.Attach(this); // On s'inscrit en tant qu'observateur des logs de combat
             _monsterFactory = new MonsterFactory(_combatService);
 
-            // Initialize Commands
-            // Initialize Commands
+            // Liaison des commandes aux méthodes privées
             StartGameCommand = new RelayCommand(StartGame);
-            AttackCommand = new RelayCommand(async _ => await AttackAsync(), _ => IsGameRunning && IsPlayerTurn && Monster != null && Monster.IsAlive);
             
-            // Toggle Menus
+            // On définit ici les conditions d'activation (IsPlayerTurn && Monster.IsAlive ...)
+            AttackCommand = new RelayCommand(async _ => await AttackAsync(), _ => IsGameRunning && IsPlayerTurn && Monster != null && Monster.IsAlive);
             UseSkillCommand = new RelayCommand(_ => { ShowSkills = !ShowSkills; ShowInventory = false; }, _ => IsGameRunning && IsPlayerTurn);
             UseItemCommand = new RelayCommand(_ => { ShowInventory = !ShowInventory; ShowSkills = false; }, _ => IsGameRunning && IsPlayerTurn);
-            
             FleeCommand = new RelayCommand(async _ => await FleeAsync(), _ => IsGameRunning && IsPlayerTurn);
 
-            // Selection Commands
-            SelectSkillCommand = new RelayCommand(async param => await UseSkillAsync(param as Skill), param => IsGameRunning && IsPlayerTurn && param is Skill);
-            // Selection Commands
             SelectSkillCommand = new RelayCommand(async param => await UseSkillAsync(param as Skill), param => IsGameRunning && IsPlayerTurn && param is Skill);
             SelectItemCommand = new RelayCommand(async param => await UseItemAsync(param as IUsableItem), param => IsGameRunning && IsPlayerTurn && param is IUsableItem);
             
-            UpdateAvailableWeapons(); // Init weapons
-            UpdatePreviewStats(); // Init preview
+            UpdateAvailableWeapons(); 
+            UpdatePreviewStats(); 
         }
 
         private void UpdateAvailableWeapons()
@@ -321,13 +327,16 @@ namespace Rpg.Wpf.ViewModels
             IsPlayerTurn = true;
         }
 
+        /// <summary>
+        /// Logique d'un tour d'attaque (Asynchrone pour simuler le temps d'attente).
+        /// </summary>
         private async Task AttackAsync()
         {
-            IsPlayerTurn = false;
+            IsPlayerTurn = false; // Désactive les boutons
             
-            // Player Turn
+            // Action du Joueur
             _combatService.ProcessTurn(Hero, Monster);
-            RefreshStats();
+            RefreshStats(); // Force le rafraîchissement UI
 
             if (!Monster.IsAlive)
             {
@@ -338,8 +347,8 @@ namespace Rpg.Wpf.ViewModels
                 return;
             }
 
-            // Enemy Turn
-            await Task.Delay(1000); // Simulate thinking time
+            // Tour Ennemi (simulé avec un délai)
+            await Task.Delay(1000);
             OnAction("--- Tour Ennemi ---");
             Monster.ExecuteTurn(Hero);
             RefreshStats();
@@ -352,7 +361,7 @@ namespace Rpg.Wpf.ViewModels
             }
             else
             {
-                IsPlayerTurn = true;
+                IsPlayerTurn = true; // Réactive les boutons
             }
         }
 

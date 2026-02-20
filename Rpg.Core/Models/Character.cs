@@ -6,8 +6,15 @@ using Rpg.Core.Models.Items;
 
 namespace Rpg.Core.Models
 {
+    /// <summary>
+    /// Classe de base abstraite représentant tout personnage (Héros ou Monstre).
+    /// Gère les statistiques, l'inventaire, les compétences et la progression.
+    /// </summary>
     public abstract class Character
     {
+        /// <summary>
+        /// Statistiques actuelles du personnage (HP, MP, Force, etc.).
+        /// </summary>
         public Stats Statistics { get; protected set; }
 
         protected Character(Stats stats)
@@ -21,14 +28,22 @@ namespace Rpg.Core.Models
         public List<IUsableItem> Inventory { get; private set; }
         public Weapon EquippedWeapon { get; private set; }
         public int Experience { get; private set; }
-        public int ExpToNextLevel => Statistics.Level * 100; // Simple formula
+        
+        /// <summary>
+        /// Expérience requise pour le prochain niveau (Liveau * 100).
+        /// </summary>
+        public int ExpToNextLevel => Statistics.Level * 100;
 
         public string Name => Statistics.Name;
         public bool IsAlive => Statistics.HP > 0;
 
+        /// <summary>
+        /// Réduit les points de vie du personnage.
+        /// </summary>
         public virtual void TakeDamage(int amount)
         {
             var newHp = Math.Max(0, Statistics.HP - amount);
+            // La struct Stats est immuable, on crée une nouvelle instance
             Statistics = new Stats(
                 Statistics.Name, 
                 Statistics.Level, 
@@ -44,17 +59,23 @@ namespace Rpg.Core.Models
             );
         }
 
+        /// <summary>
+        /// Équipe une arme et met à jour les bonus de statistiques.
+        /// </summary>
         public void EquipWeapon(Weapon weapon)
         {
-            // Remove old bonuses if any
+            // On retire les bonus de l'ancienne arme avant d'équiper la nouvelle
             if (EquippedWeapon != null) ApplyWeaponBonuses(EquippedWeapon, -1);
             
             EquippedWeapon = weapon;
             
-            // Apply new bonuses
+            // On applique les nouveaux bonus
             if (EquippedWeapon != null) ApplyWeaponBonuses(EquippedWeapon, 1);
         }
 
+        /// <summary>
+        /// Ajoute ou retire les bonus d'une arme aux statistiques.
+        /// </summary>
         private void ApplyWeaponBonuses(Weapon w, int multiplier)
         {
             Statistics = new Stats(
@@ -67,11 +88,14 @@ namespace Rpg.Core.Models
                 Statistics.Agility + (w.AgiBonus * multiplier),
                 Statistics.Defense + (w.DefBonus * multiplier),
                 Statistics.MagicResistance,
-                Statistics.HP + (w.HpBonus * multiplier), // Also heal/damage current HP by the same amount
+                Statistics.HP + (w.HpBonus * multiplier),
                 Statistics.MP + (w.MpBonus * multiplier)
             );
         }
 
+        /// <summary>
+        /// Soigne le personnage du montant spécifié, sans dépasser le max.
+        /// </summary>
         public virtual void Heal(int amount)
         {
             int newHp = Math.Min(Statistics.MaxHP, Statistics.HP + amount);
@@ -90,6 +114,9 @@ namespace Rpg.Core.Models
             );
         }
 
+        /// <summary>
+        /// Consomme des points de mana pour lancer un sort.
+        /// </summary>
         public virtual void ConsumeMana(int amount)
         {
             int newMp = Math.Max(0, Statistics.MP - amount);
@@ -126,6 +153,9 @@ namespace Rpg.Core.Models
             );
         }
 
+        /// <summary>
+        /// Ajoute de l'expérience et gère la montée de niveau.
+        /// </summary>
         public void GainExperience(int amount)
         {
             Experience += amount;
@@ -135,11 +165,14 @@ namespace Rpg.Core.Models
             }
         }
 
+        /// <summary>
+        /// Augmente le niveau et améliore les statistiques de base.
+        /// </summary>
         private void LevelUp()
         {
-            Experience -= ExpToNextLevel; // Carry over excess XP
+            Experience -= ExpToNextLevel; // Report du surplus d'expérience
             
-            // Simple Level Up: +1 Level, +10 HP/MP, +2 Str/Int/Agi
+            // Gain automatique : +1 Level, +10 HP/MP, +2 Str/Int/Agi
             Statistics = new Stats(
                 Statistics.Name,
                 Statistics.Level + 1,
@@ -152,7 +185,7 @@ namespace Rpg.Core.Models
                 Statistics.MagicResistance + 1
             );
             
-            // Full Heal on Level Up!
+            // Soin total à chaque montée de niveau
             Heal(Statistics.MaxHP);
             RestoreMana(Statistics.MaxMP);
 
@@ -161,6 +194,9 @@ namespace Rpg.Core.Models
 
         protected virtual void OnLevelUp() { }
 
+        /// <summary>
+        /// Calcule la valeur totale d'attaque physique (Force + bonus arme).
+        /// </summary>
         public int GetPhysicalAttack()
         {
             int baseStr = Statistics.Strength;

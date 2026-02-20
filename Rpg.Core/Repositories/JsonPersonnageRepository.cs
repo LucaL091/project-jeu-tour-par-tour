@@ -7,22 +7,34 @@ using Rpg.Core.Models;
 
 namespace Rpg.Core.Repositories
 {
+    /// <summary>
+    /// Implémentation du dépôt (Repository) utilisant un fichier JSON pour la persistance.
+    /// </summary>
     public class JsonPersonnageRepository : IPersonnageRepository
     {
         private readonly string _filePath;
 
+        /// <summary>
+        /// Initialise le dépôt avec le chemin du fichier de sauvegarde.
+        /// </summary>
+        /// <param name="filePath">Nom du fichier JSON (par défaut characters.json).</param>
         public JsonPersonnageRepository(string filePath = "characters.json")
         {
             _filePath = filePath;
         }
 
+        /// <summary>
+        /// Sauvegarde ou met à jour un personnage dans le fichier JSON.
+        /// </summary>
         public void Save(Character character)
         {
             var characters = GetAllInternal();
+            // On cherche si un personnage du même nom existe déjà pour le remplacer
             var existing = characters.Find(c => c.Name == character.Name);
             if (existing != null) characters.Remove(existing);
             characters.Add(character);
             
+            // Sérialisation avec indentation pour la lisibilité
             var options = new JsonSerializerOptions { WriteIndented = true };
             string json = JsonSerializer.Serialize(characters, options);
             File.WriteAllText(_filePath, json);
@@ -39,6 +51,9 @@ namespace Rpg.Core.Repositories
             return GetAllInternal();
         }
 
+        /// <summary>
+        /// Charge tous les personnages depuis le fichier JSON.
+        /// </summary>
         private List<Character> GetAllInternal()
         {
             if (!File.Exists(_filePath)) return new List<Character>();
@@ -46,13 +61,14 @@ namespace Rpg.Core.Repositories
             string json = File.ReadAllText(_filePath);
             try
             {
-                // Note: JsonSerializer might need help with polymorphic types if we had complex inheritance.
-                // For Hero/Monster, we might need a custom converter if we want to distinguish them easily.
-                // But for now, let's assume we primarily save Heroes.
+                // Désérialisation en liste de Hero. 
+                // Note : En cas de polymorphisme complexe (Monstres sauvés aussi), 
+                // il faudrait un convertisseur JSON personnalisé (JsonConverter).
                 return JsonSerializer.Deserialize<List<Hero>>(json)?.Cast<Character>().ToList() ?? new List<Character>();
             }
-            catch
+            catch (Exception)
             {
+                // En cas d'erreur de lecture/format, on retourne une liste vide pour ne pas faire planter le jeu
                 return new List<Character>();
             }
         }

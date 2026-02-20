@@ -13,7 +13,7 @@ namespace Rpg.Client
             // 1. Dependency Injection Setup
             
             // Repositories
-            IPersonnageRepository personnageRepository = new InMemoryPersonnageRepository();
+            IPersonnageRepository personnageRepository = new JsonPersonnageRepository();
 
             // Strategies
             IDamageStrategy damageStrategy = new PhysicalDamageStrategy();
@@ -22,8 +22,9 @@ namespace Rpg.Client
             MemoryLogger logger = new MemoryLogger();
 
             // Services
-            // CombatService needs Logger and DamageStrategy
-            CombatService combatService = new CombatService(logger, damageStrategy);
+            // CombatService needs DamageStrategy
+            CombatService combatService = new CombatService(damageStrategy);
+            combatService.Attach(logger); // logger now implements ICombatObserver directly
 
             // PersonnageService needs Repository
             PersonnageService personnageService = new PersonnageService(personnageRepository);

@@ -12,14 +12,14 @@ namespace Rpg.Core.Models.Skills
             IsSupport = true;
         }
 
-        public override void Execute(Character user, Character target, IActionLogger logger)
+        public override void Execute(Character user, Character target, ICombatObserver observer)
         {
             // Simple calculation: Intelligence * 3
             int amount = user.Statistics.Intelligence * 3;
             
-            logger.Log($"{user.Name} casts Heal on {target.Name}!");
+            observer.OnAction($"{user.Name} casts Heal on {target.Name}!");
             target.Heal(amount);
-            logger.Log($"{target.Name} recovers {amount} HP.");
+            observer.OnAction($"{target.Name} recovers {amount} HP.");
         }
     }
 }

@@ -54,10 +54,14 @@ namespace Rpg.Client
             while (hero.IsAlive)
             {
                 Monster monster = CreateMonster(floor, difficulty);
+                
+                // Save progress at each floor
+                _personnageService.SaveCharacter(hero);
+
                 // Console.Clear(); // Handled by RenderCombatFrame
                 // DrawBorder($"FLOOR {floor}"); // Handled by RenderCombatFrame
-                _logger.Log($"--- ETAGE {floor} ---");
-                _logger.Log($"Un {monster.Name} sauvage apparait!");
+                _logger.OnAction($"--- ETAGE {floor} ---");
+                _logger.OnAction($"Un {monster.Name} sauvage apparait!");
                 // System.Threading.Thread.Sleep(1000); // Removed delay
 
                 BattleResult result = GameLoop(hero, monster);
@@ -400,12 +404,12 @@ namespace Rpg.Client
                     
                     if (_random.Next(1, 101) <= fleeChance)
                     {
-                        _logger.Log($"\n{hero.Name} a reussi a s'enfuir !");
+                        _logger.OnAction($"\n{hero.Name} a reussi a s'enfuir !");
                         return BattleResult.Fled;
                     }
                     else
                     {
-                        _logger.Log($"\n{hero.Name} tente de fuir mais echoue !");
+                        _logger.OnAction($"\n{hero.Name} tente de fuir mais echoue !");
                         RenderCombatFrame(hero, monster);
                         System.Threading.Thread.Sleep(1000);
                     }
@@ -414,7 +418,7 @@ namespace Rpg.Client
                 if (!monster.IsAlive) return BattleResult.Victory;
 
                 // Monster Turn
-                _logger.Log("\n--- Tour Ennemi ---");
+                _logger.OnAction("\n--- Tour Ennemi ---");
                 RenderCombatFrame(hero, monster); 
                 System.Threading.Thread.Sleep(500); // Short pause before enemy acts
 
@@ -460,7 +464,7 @@ namespace Rpg.Client
 
         private void ShowMessage(string message)
         {
-            _logger.Log(message);
+            _logger.OnAction(message);
         }
 
         private int CombatMenu(Hero hero, Monster monster, string[] options, string menuTitle)

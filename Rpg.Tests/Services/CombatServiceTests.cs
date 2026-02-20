@@ -12,7 +12,7 @@ namespace Rpg.Tests.Services
         public void ProcessTurn_ShouldInflictDamage_WhenBothAlive()
         {
             // Arrange
-            var mockLogger = new Mock<IActionLogger>();
+            var mockObserver = new Mock<ICombatObserver>();
             var mockStrategy = new Mock<IDamageStrategy>();
             
             var attackerStats = new Stats("Attacker", 1, 100, 10, 10, 10, 10, 10, 0);
@@ -22,21 +22,22 @@ namespace Rpg.Tests.Services
 
             mockStrategy.Setup(s => s.CalculateDamage(attacker, defender)).Returns(10);
             
-            var service = new CombatService(mockLogger.Object, mockStrategy.Object);
+            var service = new CombatService(mockStrategy.Object);
+            service.Attach(mockObserver.Object);
 
             // Act
             service.ProcessTurn(attacker, defender);
 
             // Assert
             Assert.Equal(90, defender.Statistics.HP);
-            mockLogger.Verify(l => l.Log(It.IsAny<string>()), Times.AtLeastOnce);
+            mockObserver.Verify(l => l.OnAction(It.IsAny<string>()), Times.AtLeastOnce);
         }
 
         [Fact]
         public void ProcessTurn_ShouldNotInflictDamage_WhenAttackerDead()
         {
-             // Arrange
-            var mockLogger = new Mock<IActionLogger>();
+            // Arrange
+            var mockObserver = new Mock<ICombatObserver>();
             var mockStrategy = new Mock<IDamageStrategy>();
             
             var attackerStats = new Stats("Attacker", 1, 100, 10, 10, 10, 10, 10, 0);
@@ -46,7 +47,8 @@ namespace Rpg.Tests.Services
             
             var defender = new Hero(defenderStats);
 
-            var service = new CombatService(mockLogger.Object, mockStrategy.Object);
+            var service = new CombatService(mockStrategy.Object);
+            service.Attach(mockObserver.Object);
 
             // Act
             service.ProcessTurn(attacker, defender);

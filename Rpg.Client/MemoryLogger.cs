@@ -3,12 +3,12 @@ using Rpg.Core.Interfaces;
 
 namespace Rpg.Client
 {
-    public class MemoryLogger : IActionLogger
+    public class MemoryLogger : ICombatObserver
     {
         private readonly List<string> _logs = new List<string>();
         private const int MaxLogs = 5;
 
-        public void Log(string message)
+        public void OnAction(string message)
         {
             _logs.Add(message);
             if (_logs.Count > MaxLogs)

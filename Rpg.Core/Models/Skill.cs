@@ -9,6 +9,6 @@ namespace Rpg.Core.Models
         public int ManaCost { get; protected set; }
         public bool IsSupport { get; protected set; } // True for Heal, False for Damage
 
-        public abstract void Execute(Character user, Character target, IActionLogger logger);
+        public abstract void Execute(Character user, Character target, ICombatObserver observer);
     }
 }

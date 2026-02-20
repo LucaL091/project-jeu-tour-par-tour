@@ -3,9 +3,9 @@ using Rpg.Core.Interfaces;
 
 namespace Rpg.Client
 {
-    public class ConsoleLogger : IActionLogger
+    public class ConsoleLogger : ICombatObserver
     {
-        public void Log(string message)
+        public void OnAction(string message)
         {
             // Simple color coding based on message content
             if (message.Contains("attacks"))

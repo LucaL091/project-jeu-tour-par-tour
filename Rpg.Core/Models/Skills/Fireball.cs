@@ -12,7 +12,7 @@ namespace Rpg.Core.Models.Skills
             IsSupport = false;
         }
 
-        public override void Execute(Character user, Character target, IActionLogger logger)
+        public override void Execute(Character user, Character target, ICombatObserver observer)
         {
             // Simple damage formula: Intelligence * 2 + Level * 2
             int damage = (user.Statistics.Intelligence * 2) + (user.Statistics.Level * 2);
@@ -20,9 +20,9 @@ namespace Rpg.Core.Models.Skills
             int reduction = target.Statistics.MagicResistance / 2;
             int finalDamage = System.Math.Max(1, damage - reduction);
 
-            logger.Log($"{user.Name} casts Fireball on {target.Name}!");
+            observer.OnAction($"{user.Name} casts Fireball on {target.Name}!");
             target.TakeDamage(finalDamage);
-            logger.Log($"{target.Name} takes {finalDamage} fire damage.");
+            observer.OnAction($"{target.Name} takes {finalDamage} fire damage.");
         }
     }
 }

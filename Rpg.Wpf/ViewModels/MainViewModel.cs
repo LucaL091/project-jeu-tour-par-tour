@@ -18,7 +18,7 @@ using Rpg.Wpf.Commands;
 
 namespace Rpg.Wpf.ViewModels
 {
-    public class MainViewModel : INotifyPropertyChanged, IActionLogger
+    public class MainViewModel : INotifyPropertyChanged, ICombatObserver
     {
         private readonly PersonnageService _personnageService;
         private readonly CombatService _combatService;
@@ -162,10 +162,11 @@ namespace Rpg.Wpf.ViewModels
         public MainViewModel()
         {
             // Initialize Services
-            var repo = new Rpg.Core.Repositories.InMemoryPersonnageRepository();
+            var repo = new Rpg.Core.Repositories.JsonPersonnageRepository();
             _personnageService = new PersonnageService(repo);
             var damageStrategy = new PhysicalDamageStrategy();
-            _combatService = new CombatService(this, damageStrategy); // Pass 'this' as logger
+            _combatService = new CombatService(damageStrategy);
+            _combatService.Attach(this); // Register as observer
             _monsterFactory = new MonsterFactory(_combatService);
 
             // Initialize Commands
@@ -286,7 +287,7 @@ namespace Rpg.Wpf.ViewModels
                 Floor = 1;
                 IsGameRunning = true;
                 GameLogs.Clear();
-                Log("Bienvenue dans le donjon !");
+                OnAction("Bienvenue dans le donjon !");
                 
                 StartNextFloor();
             }
@@ -300,10 +301,13 @@ namespace Rpg.Wpf.ViewModels
         private void StartNextFloor()
         {
             if (!Hero.IsAlive) return;
+            
+            // Save Progress automatically
+            _personnageService.SaveCharacter(Hero);
 
             Monster = _monsterFactory.CreateRandomMonster(Floor, (Difficulty)SelectedDifficultyIndex);
-            Log($"--- ETAGE {Floor} ---");
-            Log($"Un {Monster.Name} sauvage apparait !");
+            OnAction($"--- ETAGE {Floor} ---");
+            OnAction($"Un {Monster.Name} sauvage apparait !");
             IsPlayerTurn = true;
         }
 
@@ -317,7 +321,7 @@ namespace Rpg.Wpf.ViewModels
 
             if (!Monster.IsAlive)
             {
-                Log($"{Monster.Name} est vaincu !");
+                OnAction($"{Monster.Name} est vaincu !");
                 await Task.Delay(1000);
                 Floor++;
                 StartNextFloor();
@@ -326,13 +330,13 @@ namespace Rpg.Wpf.ViewModels
 
             // Enemy Turn
             await Task.Delay(1000); // Simulate thinking time
-            Log("--- Tour Ennemi ---");
+            OnAction("--- Tour Ennemi ---");
             Monster.ExecuteTurn(Hero);
             RefreshStats();
 
             if (!Hero.IsAlive)
             {
-                Log("Vous etes mort...");
+                OnAction("Vous etes mort...");
                 IsGameRunning = false;
                 MessageBox.Show("Game Over!", "Perdu", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -349,7 +353,7 @@ namespace Rpg.Wpf.ViewModels
              
              if (item != null)
              {
-                 Log($"Vous utilisez {item.Name}!");
+                 OnAction($"Vous utilisez {item.Name}!");
                  item.Use(Hero);
                  Hero.Inventory.Remove(item);
                  RefreshStats();
@@ -362,7 +366,7 @@ namespace Rpg.Wpf.ViewModels
              
              if (!Hero.IsAlive)
              {
-                  Log("Vous etes mort...");
+                  OnAction("Vous etes mort...");
                   IsGameRunning = false;
              }
              else
@@ -379,7 +383,7 @@ namespace Rpg.Wpf.ViewModels
 
              if (Hero.Statistics.MP < skill.ManaCost)
              {
-                 Log("Pas assez de mana !");
+                 OnAction("Pas assez de mana !");
                  return;
              }
 
@@ -389,7 +393,7 @@ namespace Rpg.Wpf.ViewModels
 
              if (!skill.IsSupport && !Monster.IsAlive)
              {
-                 Log($"{Monster.Name} est vaincu !");
+                 OnAction($"{Monster.Name} est vaincu !");
                  await Task.Delay(1000);
                  Floor++;
                  StartNextFloor();
@@ -403,7 +407,7 @@ namespace Rpg.Wpf.ViewModels
              
              if (!Hero.IsAlive)
              {
-                  Log("Vous etes mort...");
+                  OnAction("Vous etes mort...");
                   IsGameRunning = false;
              }
              else
@@ -427,27 +431,27 @@ namespace Rpg.Wpf.ViewModels
 
         private async Task FleeAsync()
         {
-            Log($"{Hero.Name} tente de fuir...");
+            OnAction($"{Hero.Name} tente de fuir...");
             IsPlayerTurn = false;
             await Task.Delay(1000);
             
             // Simple 50% chance
             if (new Random().Next(0, 2) == 0)
             {
-                 Log("Fuite réussie !");
+                 OnAction("Fuite réussie !");
                  IsGameRunning = false;
                  MessageBox.Show("Vous avez fui lachement !", "Fuite", MessageBoxButton.OK, MessageBoxImage.Exclamation);
             }
             else
             {
-                 Log("Echec de la fuite !");
+                 OnAction("Echec de la fuite !");
                  await Task.Delay(500);
                  Monster.ExecuteTurn(Hero);
                  RefreshStats();
                  
                  if (!Hero.IsAlive)
                  {
-                    Log("Vous etes mort...");
+                    OnAction("Vous etes mort...");
                     IsGameRunning = false;
                  }
                  else
@@ -464,7 +468,7 @@ namespace Rpg.Wpf.ViewModels
             OnPropertyChanged(nameof(Monster));
         }
 
-        public void Log(string message)
+        public void OnAction(string message)
         {
             // Ensure UI thread access
             Application.Current.Dispatcher.Invoke(() =>

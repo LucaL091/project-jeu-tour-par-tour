@@ -148,7 +148,17 @@ namespace Rpg.Wpf.ViewModels
         public bool IsPlayerTurn
         {
             get => _isPlayerTurn;
-            set { _isPlayerTurn = value; OnPropertyChanged(); }
+            set 
+            { 
+                _isPlayerTurn = value; 
+                OnPropertyChanged(); 
+                
+                // Force UI to re-evaluate Command CanExecute
+                Application.Current?.Dispatcher?.BeginInvoke(new Action(() =>
+                {
+                    CommandManager.InvalidateRequerySuggested();
+                }));
+            }
         }
 
         public ICommand StartGameCommand { get; }

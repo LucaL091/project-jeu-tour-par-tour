@@ -1,0 +1,42 @@
+[
+  {
+    "Statistics": {
+      "Name": "Heros",
+      "Level": 1,
+      "HP": 130,
+      "MaxHP": 130,
+      "MP": 20,
+      "MaxMP": 20,
+      "Strength": 10,
+      "Intelligence": 5,
+      "Agility": 8,
+      "Defense": 8,
+      "MagicResistance": 2
+    },
+    "Skills": [],
+    "Inventory": [
+      {
+        "Name": "Potion de Soin"
+      },
+      {
+        "Name": "Potion de Soin"
+      },
+      {
+        "Name": "Potion de Mana"
+      }
+    ],
+    "EquippedWeapon": {
+      "Name": "Epee a deux mains (Phys \u002B8, PV \u002B10)",
+      "DamageBonus": 8,
+      "Type": "Sword",
+      "HpBonus": 10,
+      "MpBonus": 0,
+      "AgiBonus": 0,
+      "DefBonus": 0
+    },
+    "Experience": 0,
+    "ExpToNextLevel": 100,
+    "Name": "Heros",
+    "IsAlive": true
+  }
+]

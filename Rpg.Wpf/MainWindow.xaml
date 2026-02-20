@@ -249,7 +249,8 @@
         </Grid>
 
         <!-- Game Logs -->
-        <Border Grid.Row="2" Style="{StaticResource GlassPanel}" Margin="40,10">
+        <Border Grid.Row="2" Style="{StaticResource GlassPanel}" Margin="40,10"
+                Visibility="{Binding IsGameRunning, Converter={StaticResource BooleanToVisibilityConverter}}">
             <Grid>
                  <ListView ItemsSource="{Binding GameLogs}" Background="Transparent" BorderThickness="0" Foreground="#EEEEEE" FontFamily="Consolas" FontSize="14" Padding="15">
                     <ListView.ItemContainerStyle>
